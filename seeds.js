@@ -26,7 +26,12 @@ function seedDB(){
             console.log(err)
         }
         console.log("Campgrounds removed");
-        
+        Comment.deleteMany({}, function (err){
+            if(err) {
+                console.log(err);
+            } console.log("Comments removed");
+        })
+        //add a few campgrounds
         data.forEach(function(seed){
             Campground.create(seed, function(err, campground){
                 if(err){

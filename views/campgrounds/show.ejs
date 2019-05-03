@@ -1,5 +1,5 @@
 <% include ../partials/header %>
-<div class="container">
+
    <div class="row">
      <div class="col-md-3">
        <p class="lead">Yelp Camp</p>
@@ -8,6 +8,7 @@
          <li class="list-group-item">Info 2</li>
          <li class="list-group-item">Info 3</li>
        </div>
+       <div id="map"></div>
      </div>
      <div class="col-md-9">
       <div class="thumbnail">
@@ -17,15 +18,15 @@
           <h1><a><%=campground.name%></a></h1>
           <p><%=campground.description%></p>
           <p>
-           <em>Submitted By :- <%= campground.author.username %></em>
+             <em>Submitted by:<a href="/users/<%=campground.author.id%>"><%=  campground.author.username %></a>, <%= moment(campground.createdAt).fromNow() %></em>
           </p>
          
-          <% if(currentUser && campground.author.id.equals(currentUser._id)) { %>
+          <% if(currentUser && campground.author.id.equals(currentUser._id) || currentUser && currentUser.isAdmin) { %>
           <a class="btn btn-warning" href="/campgrounds/<%= campground._id %>/edit" type="button" >Edit</a>
           <form id="delete-form" action="/campgrounds/<%= campground._id %>?_method=DELETE" method="POST">
-           <button class="btn btn-danger">Delete</button>
-          <% } %>
+           <input type="submit" class="btn btn-danger" value="Delete">
           </form>
+         <% } %>
        </div>
       </div>
       <div class="well">
@@ -37,11 +38,11 @@
           <div class="row">
          <div class="col-md-12">
            <strong><%= comment.author.username %></strong>  
-           <span class="pull-right">10 days ago</span>
+           <span class="pull-right"><%= moment(comment.createdAt).fromNow() %></span>
            <p>
              <%= comment.text %> 
            </p>
-           <% if(currentUser && comment.author.id.equals(currentUser._id)) { %>
+           <% if(currentUser && comment.author.id.equals(currentUser._id) || currentUser && currentUser.isAdmin) { %>
            <a href="/campgrounds/<%=campground.id%>/comments/<%=comment.id%>/edit" 
            class= "btn btn-xs btn-warning">
             Edit
@@ -56,18 +57,34 @@
       </div>
      </div>
    </div>
-</div>
 
-
-
-
-
-
-
-<p>
- 
-</p>
-
-
+<script>
+  function initMap() {
+    var lat = <%= campground.lat %>;
+    var lng = <%= campground.lng %>;
+    var center = {lat: lat, lng: lng };
+    var map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 8,
+        center: center,
+        scrollwheel: false
+    });
+    var contentString = `
+      <strong><%= campground.name %><br />
+      <%= campground.location %></strong>
+      <p><%= campground.description %></p>
+    `
+    var infowindow = new google.maps.InfoWindow({
+      content: contentString
+    });
+    var marker = new google.maps.Marker({
+        position: center,
+        map: map
+    });
+    marker.addListener('click', function() {
+      infowindow.open(map, marker);
+    });
+  }
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAsdyuNiVC_s0gfKc9Bh8NgAv5t9VgRLvw&callback=initMap"></script>
 
 <% include ../partials/footer %>
